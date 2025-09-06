@@ -8,11 +8,7 @@ import { ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 
 @Module({
-  imports: [
-    AuthModule,
-    HealthModule,
-    SecurityModule,
-  ],
+  imports: [AuthModule, HealthModule, SecurityModule],
   controllers: [AppController],
   providers: [
     AppService,

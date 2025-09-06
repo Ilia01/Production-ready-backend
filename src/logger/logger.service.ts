@@ -3,7 +3,7 @@ import * as winston from 'winston';
 
 @Injectable()
 export class LoggerService implements NestLoggerService {
-  private logger: winston.Logger;
+  private readonly logger: winston.Logger;
 
   constructor() {
     this.logger = winston.createLogger({
@@ -13,7 +13,7 @@ export class LoggerService implements NestLoggerService {
         winston.format.errors({ stack: true }),
         winston.format.json(),
       ),
-      defaultMeta: { service: 'trading-api' },
+      defaultMeta: { service: 'backend-api' },
       transports: [
         new winston.transports.Console({
           format: winston.format.combine(

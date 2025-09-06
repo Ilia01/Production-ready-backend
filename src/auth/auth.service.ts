@@ -18,7 +18,11 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async login(dto: LoginDto): Promise<{ user: UserResponse; accessToken: string; refreshToken: string }> {
+  async login(dto: LoginDto): Promise<{
+    user: UserResponse;
+    accessToken: string;
+    refreshToken: string;
+  }> {
     const user = await this.getUserByEmail(dto.email);
 
     if (!user) throw new UnauthorizedException('Invalid credentials');
@@ -31,7 +35,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
 
     const accessToken = await this.generateAccessToken(user.id, user.role);
-    const refreshToken = await this.generateRefreshToken();
+    const refreshToken = this.generateRefreshToken();
 
     // Store refresh token in database
     await this.prisma.user.update({
@@ -46,14 +50,16 @@ export class AuthService {
     };
   }
 
-  async register(
-    dto: RegisterDto,
-  ): Promise<{ user: UserResponse; accessToken: string; refreshToken: string }> {
+  async register(dto: RegisterDto): Promise<{
+    user: UserResponse;
+    accessToken: string;
+    refreshToken: string;
+  }> {
     const existingUser = await this.getUserByEmail(dto.email);
     if (existingUser) throw new ConflictException('Email already registered');
 
     const hashedPassword = await bcrypt.hash(dto.password, 10);
-    const refreshToken = await this.generateRefreshToken();
+    const refreshToken = this.generateRefreshToken();
 
     const newUser = await this.prisma.user.create({
       data: {
@@ -64,7 +70,10 @@ export class AuthService {
       },
     });
 
-    const accessToken = await this.generateAccessToken(newUser.id, newUser.role);
+    const accessToken = await this.generateAccessToken(
+      newUser.id,
+      newUser.role,
+    );
 
     return {
       user: toUserResponse(newUser),
@@ -73,15 +82,18 @@ export class AuthService {
     };
   }
 
-  private async generateAccessToken(userId: string, role: string): Promise<string> {
+  private async generateAccessToken(
+    userId: string,
+    role: string,
+  ): Promise<string> {
     return this.jwtService.signAsync(
       { sub: userId, role },
       { expiresIn: '15m' },
     );
   }
 
-  private async generateRefreshToken(): Promise<string> {
-    return randomBytes(32).toString('hex');
+  private generateRefreshToken(): string {
+    return randomBytes(40).toString('hex');
   }
 
   private async getUserByEmail(email: string) {
@@ -98,7 +110,9 @@ export class AuthService {
     });
   }
 
-  async refreshAccessToken(refreshToken: string): Promise<{ accessToken: string; refreshToken: string }> {
+  async refreshAccessToken(
+    refreshToken: string,
+  ): Promise<{ accessToken: string; refreshToken: string }> {
     const user = await this.prisma.user.findFirst({
       where: { refreshToken },
       select: {
@@ -115,7 +129,7 @@ export class AuthService {
 
     // Generate new tokens
     const newAccessToken = await this.generateAccessToken(user.id, user.role);
-    const newRefreshToken = await this.generateRefreshToken();
+    const newRefreshToken = this.generateRefreshToken();
 
     // Update refresh token in database
     await this.prisma.user.update({
