@@ -1,4 +1,4 @@
-import { PrismaClient, UserRole } from '../generated/prisma';
+import { PrismaClient, UserRole } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
@@ -44,7 +44,6 @@ async function main() {
     });
   }
 
-  // Create sample audit logs
   await prisma.auditLog.createMany({
     data: [
       {
@@ -68,17 +67,19 @@ async function main() {
     ],
   });
 
-  console.log('✅ Database seeded successfully!');
-  console.log(`👤 Admin user: admin@trading.com / admin123`);
-  console.log(`👤 Regular user: user@trading.com / user123`);
-  console.log(`👤 Test users: test1@trading.com / test1123, test2@trading.com / test2123, etc.`);
+  console.log('Database seeded successfully!');
+  console.log(`Admin user: admin@trading.com / admin123`);
+  console.log(`Regular user: user@trading.com / user123`);
+  console.log(
+    `Test users: test1@trading.com / test1123, test2@trading.com / test2123, etc.`,
+  );
 }
 
 main()
   .catch((e) => {
-    console.error('❌ Error seeding database:', e);
+    console.error('Error seeding database:', e);
     process.exit(1);
   })
-  .finally(async () => {
-    await prisma.$disconnect();
+  .finally(() => {
+    prisma.$disconnect();
   });

@@ -117,12 +117,19 @@ describe('Auth (e2e)', () => {
           role: 'USER',
         });
       
-      refreshToken = response.headers['set-cookie']
-        .find((cookie: string) => cookie.startsWith('refresh_token'))
-        ?.split(';')[0]
-        ?.split('=')[1];
+      const setCookieHeader = response.headers['set-cookie'];
+      let refreshCookie: string | undefined;
+      if (Array.isArray(setCookieHeader)) {
+        refreshCookie = setCookieHeader.find((cookie: string) =>
+          cookie.startsWith('refresh_token')
+        );
+      } else if (typeof setCookieHeader === 'string') {
+        refreshCookie = setCookieHeader.startsWith('refresh_token')
+          ? setCookieHeader
+          : undefined;
+      }
+      refreshToken = refreshCookie?.split(';')[0].split('=')[1] ?? '';
     });
-
     it('should refresh access token', () => {
       return request(app.getHttpServer())
         .post('/auth/refresh')
@@ -152,13 +159,19 @@ describe('Auth (e2e)', () => {
           password: 'password123',
           role: 'USER',
         });
-      
-      refreshToken = response.headers['set-cookie']
-        .find((cookie: string) => cookie.startsWith('refresh_token'))
-        ?.split(';')[0]
-        ?.split('=')[1];
+      const setCookieHeader = response.headers['set-cookie'];
+      let refreshCookie: string | undefined;
+      if (Array.isArray(setCookieHeader)) {
+        refreshCookie = setCookieHeader.find((cookie: string) =>
+          cookie.startsWith('refresh_token')
+        );
+      } else if (typeof setCookieHeader === 'string') {
+        refreshCookie = setCookieHeader.startsWith('refresh_token')
+          ? setCookieHeader
+          : undefined;
+      }
+      refreshToken = refreshCookie?.split(';')[0].split('=')[1] ?? '';
     });
-
     it('should logout successfully', () => {
       return request(app.getHttpServer())
         .post('/auth/logout')
