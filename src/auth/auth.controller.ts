@@ -15,13 +15,22 @@ import {
   AuthRegisterResponse,
   LogoutResponse,
 } from './dto/user.response';
+import {
+  ApiBody,
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 
+@ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
+  @ApiBody({ type: LoginDto })
+  @ApiOkResponse({ type: AuthLoginResponse })
   async login(
     @Body() loginDto: LoginDto,
     @Res({ passthrough: true }) res: Response,
@@ -29,10 +38,13 @@ export class AuthController {
     const { user, accessToken, refreshToken } =
       await this.authService.login(loginDto);
     this.setRefreshTokenCookie(res, refreshToken);
-    return { data: { user, accessToken } };
+    return { user, accessToken };
   }
 
   @Post('register')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiBody({ type: RegisterDto })
+  @ApiCreatedResponse({ type: AuthRegisterResponse })
   async register(
     @Body() registerDto: RegisterDto,
     @Res({ passthrough: true }) res: Response,
@@ -42,15 +54,16 @@ export class AuthController {
 
     this.setRefreshTokenCookie(res, refreshToken);
 
-    return { data: { user, accessToken } };
+    return { user, accessToken };
   }
 
   @Post('logout')
   @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: LogoutResponse })
   logout(@Res({ passthrough: true }) res: Response): Promise<LogoutResponse> {
     this.clearAuthCookie(res);
 
-    return Promise.resolve({ data: { success: true } });
+    return Promise.resolve({ success: true });
   }
 
   private setRefreshTokenCookie(res: Response, token: string) {
