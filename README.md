@@ -86,17 +86,23 @@ Once running, visit:
 
 ## 🧪 Testing
 
-```bash
 # Unit tests
+```bash
 npm run test
+```
 
 # E2E tests
+```bash
 npm run test:e2e
+```
 
 # Test coverage
+```bash
 npm run test:cov
+```
 
 # Watch mode
+```bash
 npm run test:watch
 ```
 
@@ -108,21 +114,26 @@ npm run test:watch
 - **AuditLog**: Comprehensive audit trail
 
 ### Scripts
-```bash
+
 # Reset database and seed
+```bash
 npm run db:reset
+```
 
 # Generate Prisma client
+```bash
 npx prisma generate
+```
 
 # View database in Prisma Studio
+```bash
 npx prisma studio
 ```
 
 ## 🔧 Available Scripts
 
-```bash
 # Development
+```bash
 npm run start:dev          # Start with hot reload
 npm run start:debug        # Start with debugging
 
@@ -135,18 +146,14 @@ npm run test               # Run unit tests
 npm run test:e2e           # Run e2e tests
 npm run test:cov           # Run with coverage
 
-# Code Quality
-npm run lint               # Run ESLint
-npm run format             # Format with Prettier
-
 # Database
-npm run db:seed            # Seed database
-npm run db:reset           # Reset and seed database
+npm run db:seed           
+npm run db:reset         
 
 # Docker
-npm run docker:build       # Build Docker image
-npm run docker:up          # Start with Docker Compose
-npm run docker:down        # Stop Docker services
+npm run docker:build      
+npm run docker:up          
+npm run docker:down        
 ```
 
 ## 🏗️ Architecture
@@ -182,7 +189,7 @@ src/
 ```env
 NODE_ENV=production
 PORT=3000
-DATABASE_URL=postgresql://user:password@localhost:5432/trading
+DATABASE_URL=postgresql://user:password@localhost:5432/<DATABASE_NAME>
 JWT_SECRET=your-super-secret-jwt-key
 FRONTEND_URL=https://your-frontend.com
 LOG_LEVEL=info
