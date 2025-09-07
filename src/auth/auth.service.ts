@@ -10,6 +10,7 @@ import { RegisterDto } from './dto/register.dto';
 import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
 import { UserResponse, toUserResponse } from './dto/user.response';
+import { JwtPayload } from './types/jwt-payload.interface';
 
 @Injectable()
 export class AuthService {
@@ -152,7 +153,7 @@ export class AuthService {
 
   async getCurrentUser(token: string): Promise<UserResponse> {
     try {
-      const payload = await this.jwtService.verifyAsync(token);
+      const payload = await this.jwtService.verifyAsync<JwtPayload>(token);
       const user = await this.prisma.user.findUnique({
         where: { id: payload.sub },
         select: {
