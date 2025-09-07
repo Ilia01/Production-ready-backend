@@ -41,20 +41,18 @@ describe('Auth (e2e)', () => {
         })
         .expect(201)
         .expect((res) => {
-          expect(res.body.data.user.email).toBe('test@example.com');
-          expect(res.body.data.accessToken).toBeDefined();
+          expect(res.body.user.email).toBe('test@example.com');
+          expect(res.body.accessToken).toBeDefined();
         });
     });
 
     it('should not register user with existing email', async () => {
       // First registration
-      await request(app.getHttpServer())
-        .post('/auth/register')
-        .send({
-          email: 'test@example.com',
-          password: 'password123',
-          role: 'USER',
-        });
+      await request(app.getHttpServer()).post('/auth/register').send({
+        email: 'test@example.com',
+        password: 'password123',
+        role: 'USER',
+      });
 
       // Second registration with same email
       return request(app.getHttpServer())
@@ -71,13 +69,11 @@ describe('Auth (e2e)', () => {
   describe('/auth/login (POST)', () => {
     beforeEach(async () => {
       // Create a user for login tests
-      await request(app.getHttpServer())
-        .post('/auth/register')
-        .send({
-          email: 'test@example.com',
-          password: 'password123',
-          role: 'USER',
-        });
+      await request(app.getHttpServer()).post('/auth/register').send({
+        email: 'test@example.com',
+        password: 'password123',
+        role: 'USER',
+      });
     });
 
     it('should login with valid credentials', () => {
@@ -89,8 +85,8 @@ describe('Auth (e2e)', () => {
         })
         .expect(200)
         .expect((res) => {
-          expect(res.body.data.user.email).toBe('test@example.com');
-          expect(res.body.data.accessToken).toBeDefined();
+          expect(res.body.user.email).toBe('test@example.com');
+          expect(res.body.accessToken).toBeDefined();
         });
     });
 
@@ -116,12 +112,12 @@ describe('Auth (e2e)', () => {
           password: 'password123',
           role: 'USER',
         });
-      
+
       const setCookieHeader = response.headers['set-cookie'];
       let refreshCookie: string | undefined;
       if (Array.isArray(setCookieHeader)) {
         refreshCookie = setCookieHeader.find((cookie: string) =>
-          cookie.startsWith('refresh_token')
+          cookie.startsWith('refresh_token'),
         );
       } else if (typeof setCookieHeader === 'string') {
         refreshCookie = setCookieHeader.startsWith('refresh_token')
@@ -136,7 +132,7 @@ describe('Auth (e2e)', () => {
         .set('Cookie', `refresh_token=${refreshToken}`)
         .expect(200)
         .expect((res) => {
-          expect(res.body.data.accessToken).toBeDefined();
+          expect(res.body.accessToken).toBeDefined();
         });
     });
 
@@ -163,7 +159,7 @@ describe('Auth (e2e)', () => {
       let refreshCookie: string | undefined;
       if (Array.isArray(setCookieHeader)) {
         refreshCookie = setCookieHeader.find((cookie: string) =>
-          cookie.startsWith('refresh_token')
+          cookie.startsWith('refresh_token'),
         );
       } else if (typeof setCookieHeader === 'string') {
         refreshCookie = setCookieHeader.startsWith('refresh_token')
@@ -178,7 +174,7 @@ describe('Auth (e2e)', () => {
         .set('Cookie', `refresh_token=${refreshToken}`)
         .expect(200)
         .expect((res) => {
-          expect(res.body.data.success).toBe(true);
+          expect(res.body.success).toBe(true);
         });
     });
   });
