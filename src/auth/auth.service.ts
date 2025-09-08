@@ -19,7 +19,10 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async login(dto: LoginDto): Promise<{
+  async login(
+    dto: LoginDto,
+    userAgent: string,
+  ): Promise<{
     user: UserResponse;
     accessToken: string;
     refreshToken: string;
@@ -38,10 +41,14 @@ export class AuthService {
     const accessToken = await this.generateAccessToken(user.id, user.role);
     const refreshToken = this.generateRefreshToken();
 
-    // Store refresh token in database
-    await this.prisma.user.update({
-      where: { id: user.id },
-      data: { refreshToken },
+    await this.prisma.session.create({
+      data: {
+        userId: user.id,
+        token: refreshToken,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+        status: 'ACTIVE',
+        userAgent: userAgent,
+      },
     });
 
     return {
@@ -114,28 +121,32 @@ export class AuthService {
   async refreshAccessToken(
     refreshToken: string,
   ): Promise<{ accessToken: string; refreshToken: string }> {
-    const user = await this.prisma.user.findFirst({
-      where: { refreshToken },
-      select: {
-        id: true,
-        email: true,
-        role: true,
-        refreshToken: true,
+    const session = await this.prisma.session.findFirst({
+      where: {
+        token: refreshToken,
+        status: 'ACTIVE',
       },
+      include: { user: { select: { role: true } } },
     });
 
-    if (!user) {
+    if (!session) {
       throw new UnauthorizedException('Invalid refresh token');
     }
 
-    // Generate new tokens
-    const newAccessToken = await this.generateAccessToken(user.id, user.role);
+    if (session.status === 'REVOKED' || session.expiresAt < new Date()) {
+      throw new UnauthorizedException('Refresh token expired or revoked');
+    }
+
+    const newAccessToken = await this.generateAccessToken(
+      session.userId,
+      session.user.role,
+    );
     const newRefreshToken = this.generateRefreshToken();
 
     // Update refresh token in database
-    await this.prisma.user.update({
-      where: { id: user.id },
-      data: { refreshToken: newRefreshToken },
+    await this.prisma.session.update({
+      where: { token: refreshToken },
+      data: { token: newRefreshToken },
     });
 
     return {
@@ -145,9 +156,13 @@ export class AuthService {
   }
 
   async logout(refreshToken: string): Promise<void> {
-    await this.prisma.user.updateMany({
-      where: { refreshToken },
-      data: { refreshToken: null },
+    if (!refreshToken) {
+      throw new UnauthorizedException('No refresh token provided');
+    }
+
+    await this.prisma.session.updateMany({
+      where: { token: refreshToken, status: 'ACTIVE' },
+      data: { status: 'REVOKED' },
     });
   }
 

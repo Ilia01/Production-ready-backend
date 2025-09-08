@@ -5,6 +5,7 @@ import {
   Res,
   HttpCode,
   HttpStatus,
+  Req,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { AuthService } from './auth.service';
@@ -35,8 +36,12 @@ export class AuthController {
     @Body() loginDto: LoginDto,
     @Res({ passthrough: true }) res: Response,
   ): Promise<AuthLoginResponse> {
-    const { user, accessToken, refreshToken } =
-      await this.authService.login(loginDto);
+    const userAgent = res.req.headers['user-agent'] || 'unknown';
+
+    const { user, accessToken, refreshToken } = await this.authService.login(
+      loginDto,
+      userAgent,
+    );
     this.setRefreshTokenCookie(res, refreshToken);
     return { user, accessToken };
   }
@@ -60,7 +65,14 @@ export class AuthController {
   @Post('logout')
   @HttpCode(HttpStatus.OK)
   @ApiOkResponse({ type: LogoutResponse })
-  logout(@Res({ passthrough: true }) res: Response): Promise<LogoutResponse> {
+  logout(
+    @Res({ passthrough: true }) res: Response,
+    @Req() req: Request,
+  ): Promise<LogoutResponse> {
+    const refreshToken = req.cookies?.['refresh_token'];
+
+    this.authService.logout(refreshToken);
+
     this.clearAuthCookie(res);
 
     return Promise.resolve({ success: true });
@@ -72,7 +84,7 @@ export class AuthController {
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
-      maxAge: 15 * 60 * 1000, // 15 min
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
   }
 
